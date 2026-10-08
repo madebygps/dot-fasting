@@ -82,6 +82,8 @@ class DotFastingUiTest {
         compose.onNodeWithContentDescription("About estimated fasting phases").assertDoesNotExist()
         compose.onNodeWithContentDescription("Edit start time").performClick()
         compose.onNodeWithText("START").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Choose start date").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Choose start time").assertIsDisplayed()
         compose.onNodeWithText("Save").assertIsEnabled()
     }
 
@@ -165,6 +167,10 @@ class DotFastingUiTest {
         compose.onNodeWithContentDescription("History").performClick()
         compose.onNodeWithText(sessionTimeText(session)).performScrollTo().performClick()
         compose.onNodeWithContentDescription("Edit timestamps").assertIsEnabled().performClick()
+        compose.onNodeWithContentDescription("Choose start date").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Choose start time").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Choose end date").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Choose end time").assertIsDisplayed()
         compose.onNodeWithText("Save").assertIsEnabled()
         compose.onNodeWithText("Cancel").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithText("Save").fetchSemanticsNodes().isEmpty() }

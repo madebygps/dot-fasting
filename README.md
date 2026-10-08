@@ -7,7 +7,7 @@ Black UI, dot-matrix icons, one highlight colour. Works fully offline, with no a
 
 - **Timer:** a large progress ring with count-up or count-down display. Start and end fasts manually.
 - **Goals:** choose 12h, 16h, 18h, 24h or a custom duration. Reaching the goal never ends a fast.
-- **History:** a Monday-first calendar marks days with completed fasts. Tap a session to edit its times or delete it.
+- **History:** a Monday-first calendar marks days with completed fasts. Tap a session to edit its start and end dates and times independently, or delete it.
 - **Notifications:** optional goal alerts.
 - **Widget** (display only): a live dotted elapsed timer and a periodically refreshed progress bar. Tap to open the app. The widget always counts up, independently of the app's count-down setting.
 - **Glyph Toy:** progress, elapsed and remaining views. Long press switches views; short press cycles system Toys.
@@ -36,7 +36,7 @@ Then enable Glyph in the app and select Dot Fasting in **Settings > Glyph Interf
 
 ## Good to know
 
-- **Navigation:** use Android's back gesture or system back button. Tap Started on Home to edit the active start time.
+- **Navigation:** use Android's back gesture or system back button. Tap Started on Home to edit the active start date or time.
 - **Timers:** persisted timestamps keep the timer independent of the app process. Clock conflicts require review; timezone changes affect display only.
 - **Background updates:** the widget's native Android chronometer ticks in the launcher without the app running, including after the goal is reached. Below one hour it shows minutes:seconds; after that, hours:minutes:seconds. The progress bar refreshes on changes and approximately every 15 minutes while active; Android battery restrictions can delay progress updates and alerts. Force-stopping the app prevents background refreshes until it is reopened. Reboots and clock changes re-anchor the timer.
 - **Privacy:** records stay on this device. No cloud backup or export; uninstalling clears the data.
