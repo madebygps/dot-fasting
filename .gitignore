@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.aar
+app/libs/GLYPH-SDK-LICENSE.local.md
+*.keystore
+*.jks
+.idea/
+*.iml
+.DS_Store

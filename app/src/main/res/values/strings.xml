@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Dot Fasting</string>
+    <string name="widget_description">Fasting status. Tap to open Dot Fasting.</string>
+</resources>

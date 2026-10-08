@@ -1,0 +1,4 @@
+<resources>
+    <string name="glyph_toy_name">Dot Fasting</string>
+    <string name="glyph_toy_summary">A private, display-only fasting timer</string>
+</resources>

@@ -1,0 +1,138 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "207e42b517bc8e3caf97de4269fc7087",
+    "entities": [
+      {
+        "tableName": "fast_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `startEpochMillis` INTEGER NOT NULL, `endEpochMillis` INTEGER, `goalMillis` INTEGER NOT NULL, `anchorWallEpochMillis` INTEGER, `anchorElapsedRealtimeMillis` INTEGER, `anchorBootId` TEXT, `elapsedAtAnchorMillis` INTEGER NOT NULL, `completedDurationMillis` INTEGER, `needsTimeReview` INTEGER NOT NULL, `goalNotificationDelivered` INTEGER NOT NULL, `goalNotificationSuppressed` INTEGER NOT NULL, `activeSlot` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startEpochMillis",
+            "columnName": "startEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endEpochMillis",
+            "columnName": "endEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "goalMillis",
+            "columnName": "goalMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "anchorWallEpochMillis",
+            "columnName": "anchorWallEpochMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "anchorElapsedRealtimeMillis",
+            "columnName": "anchorElapsedRealtimeMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "anchorBootId",
+            "columnName": "anchorBootId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "elapsedAtAnchorMillis",
+            "columnName": "elapsedAtAnchorMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedDurationMillis",
+            "columnName": "completedDurationMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "needsTimeReview",
+            "columnName": "needsTimeReview",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "goalNotificationDelivered",
+            "columnName": "goalNotificationDelivered",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "goalNotificationSuppressed",
+            "columnName": "goalNotificationSuppressed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeSlot",
+            "columnName": "activeSlot",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_fast_sessions_activeSlot",
+            "unique": true,
+            "columnNames": [
+              "activeSlot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_fast_sessions_activeSlot` ON `${TABLE_NAME}` (`activeSlot`)"
+          }
+        ]
+      },
+      {
+        "tableName": "refresh_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `dispatchedRevision` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dispatchedRevision",
+            "columnName": "dispatchedRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '207e42b517bc8e3caf97de4269fc7087')"
+    ]
+  }
+}
