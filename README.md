@@ -9,7 +9,7 @@ Black UI, dot-matrix icons, one highlight colour. Works fully offline, with no a
 - **Goals:** choose 12h, 16h, 18h, 24h or a custom duration. Reaching the goal never ends a fast.
 - **History:** a Monday-first calendar marks days with completed fasts. Tap a session to edit its times or delete it.
 - **Notifications:** optional goal alerts.
-- **Widget** (display only): a circular dotted counter while active, a dotted flame when idle. Tap to open the app.
+- **Widget** (display only): a live dotted elapsed timer and a periodically refreshed progress bar. Tap to open the app. The widget always counts up, independently of the app's count-down setting.
 - **Glyph Toy:** progress, elapsed and remaining views. Long press switches views; short press cycles system Toys.
 
 ## Build
@@ -20,6 +20,10 @@ Set `ANDROID_HOME`, or put `sdk.dir` in an untracked `local.properties`.
 ```sh
 ./gradlew :app:testWithoutGlyphDebugUnitTest :app:installWithoutGlyphDebug
 ```
+
+Run instrumented tests only on an emulator or dedicated test device. The project
+keeps APKs installed after device tests to avoid Gradle's default uninstall/data
+deletion, but tests can still change app state.
 
 For Glyph support, obtain Nothing's official SDK and place `glyph-matrix-sdk-2.0.aar` in `app/libs/`.
 See [Glyph setup and licensing](app/Glyph-Setup.md).
@@ -34,7 +38,7 @@ Then enable Glyph in the app and select Dot Fasting in **Settings > Glyph Interf
 
 - **Navigation:** use Android's back gesture or system back button. Tap Started on Home to edit the active start time.
 - **Timers:** persisted timestamps keep the timer independent of the app process. Clock conflicts require review; timezone changes affect display only.
-- **Background updates:** widgets are snapshots, not live second-by-second counters. Android battery restrictions can delay widget updates and alerts.
+- **Background updates:** the widget's native Android chronometer ticks in the launcher without the app running, including after the goal is reached. Below one hour it shows minutes:seconds; after that, hours:minutes:seconds. The progress bar refreshes on changes and approximately every 15 minutes while active; Android battery restrictions can delay progress updates and alerts. Force-stopping the app prevents background refreshes until it is reopened. Reboots and clock changes re-anchor the timer.
 - **Privacy:** records stay on this device. No cloud backup or export; uninstalling clears the data.
 - **Glyph Matrix SDK:** proprietary and not included in this repo. Commercial use requires Nothing's written permission.
 
@@ -42,6 +46,7 @@ Then enable Glyph in the app and select Dot Fasting in **Settings > Glyph Interf
 
 - Timer controls, timestamp editing, history navigation and deletion
 - Widget rendering and tap-to-open
+- Native dotted widget font and autonomous chronometer ticking
 
 ## Not yet verified on device
 

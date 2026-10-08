@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">Dot Fasting</string>
     <string name="widget_description">Fasting status. Tap to open Dot Fasting.</string>
+    <string name="widget_loading">Loading timer\u2026</string>
+    <string name="widget_elapsed">Elapsed</string>
+    <string name="widget_idle">No active fast.\nTap to start.</string>
+    <string name="widget_review">Time needs review.\nTap to edit start time.</string>
+    <string name="widget_unavailable">Timer unavailable.\nTap to open Dot Fasting.</string>
+    <string name="widget_goal">Goal: %1$s</string>
+    <string name="widget_progress_description">%1$d%% of fasting goal. Updated periodically.</string>
 </resources>

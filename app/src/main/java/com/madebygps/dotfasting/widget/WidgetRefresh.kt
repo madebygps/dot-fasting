@@ -1,18 +1,19 @@
 package com.madebygps.dotfasting.widget
 
+import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteException
 import android.util.Log
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.madebygps.dotfasting.system.RefreshCoordinator
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
@@ -23,15 +24,24 @@ object WidgetRefresh {
     private const val WORK_NAME = "dot_fasting_widget_refresh"
 
     suspend fun update(context: Context) {
-        val ids = GlanceAppWidgetManager(context).getGlanceIds(FastingWidget::class.java)
+        val widgets = AppWidgetManager.getInstance(context)
+        val ids = widgets.getAppWidgetIds(ComponentName(context, FastingWidgetReceiver::class.java))
         if (ids.isEmpty()) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
             return
         }
-        val active = readWidgetSnapshot(context).active
-        FastingWidget().updateAll(context)
+        val state = try {
+            readWidgetState(context)
+        } catch (error: IOException) {
+            widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE)))
+            throw error
+        } catch (error: SQLiteException) {
+            widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE)))
+            throw error
+        }
+        widgets.updateAppWidget(ids, widgetViews(context, state))
         val manager = WorkManager.getInstance(context)
-        if (active) {
+        if (state.active) {
             manager.enqueueUniquePeriodicWork(
                 WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
@@ -62,7 +72,7 @@ class WidgetRefreshWorker(context: Context, parameters: WorkerParameters) : Coro
 
 class WidgetRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != "com.madebygps.dotfasting.REFRESH") return
+        if (intent.action != RefreshCoordinator.ACTION_REFRESH && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
