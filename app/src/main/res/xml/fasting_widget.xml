@@ -4,7 +4,7 @@
     android:targetCellWidth="2"
     android:targetCellHeight="2"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="0"
-    android:initialLayout="@layout/glance_default_loading_layout"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/fasting_widget"
     android:description="@string/widget_description"
     android:widgetCategory="home_screen" />

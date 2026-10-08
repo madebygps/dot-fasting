@@ -9,7 +9,6 @@ core = "1.19.1"
 room = "2.8.5"
 datastore = "1.2.1"
 work = "2.12.0"
-glance = "1.2.0"
 coroutines = "1.11.0"
 junit = "4.13.2"
 
@@ -30,7 +29,6 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-work = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
-androidx-glance = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-test-runner = { module = "androidx.test:runner", version = "1.7.0" }

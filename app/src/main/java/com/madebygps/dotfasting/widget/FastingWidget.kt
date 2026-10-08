@@ -1,98 +1,77 @@
 package com.madebygps.dotfasting.widget
 
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.database.sqlite.SQLiteException
-import android.appwidget.AppWidgetManager
-import android.util.Log
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.Image
-import androidx.glance.ImageProvider
-import androidx.glance.LocalSize
-import androidx.glance.action.clickable
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.appwidget.cornerRadius
-import androidx.glance.appwidget.provideContent
-import androidx.glance.background
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.padding
-import androidx.glance.layout.size
+import android.content.res.ColorStateList
+import android.os.Bundle
+import android.view.View
+import android.widget.RemoteViews
 import com.madebygps.dotfasting.MainActivity
-import java.io.IOException
+import com.madebygps.dotfasting.R
+import com.madebygps.dotfasting.system.RefreshCoordinator
 
-data class WidgetSnapshot(
-    val active: Boolean,
-    val description: String,
-    val time: String = "00:00",
-    val progress: Float = 0f,
-    val highlight: Int = 0xFFE8343A.toInt(),
-    val idleFlame: Boolean = false,
-)
+// Keep the receiver identity so widgets already on the home screen are upgraded in place.
+class FastingWidgetReceiver : AppWidgetProvider() {
+    override fun onEnabled(context: Context) = refresh(context)
 
-class FastingWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Exact
+    override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) = refresh(context)
 
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val snapshot = try {
-            readWidgetSnapshot(context)
-        } catch (error: IOException) {
-            unavailable(error)
-        } catch (error: SQLiteException) {
-            unavailable(error)
-        }
-        val counter = CounterBitmaps.draw(
-            snapshot.time, progress = snapshot.progress, highlight = snapshot.highlight,
-            idleFlame = snapshot.idleFlame,
-        )
-        provideContent {
-            val size = LocalSize.current
-            val counterWidth = (size.width.value - 20f).coerceAtLeast(1f)
-                .coerceAtMost((size.height.value - 20f).coerceAtLeast(1f) * counter.width / counter.height)
-            Box(
-                modifier = GlanceModifier.fillMaxSize().background(Color.Black)
-                    .cornerRadius(28.dp).padding(10.dp)
-                    .clickable(actionStartActivity(Intent(context, MainActivity::class.java))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(
-                    provider = ImageProvider(counter),
-                    contentDescription = snapshot.description,
-                    modifier = GlanceModifier.size(counterWidth.dp, (counterWidth * counter.height / counter.width).dp),
-                )
-            }
-        }
-    }
-
-    private fun unavailable(error: Exception): WidgetSnapshot {
-        Log.e("DotFastingWidget", "Cannot read fasting state", error)
-        return WidgetSnapshot(false, "Timer unavailable. Open Dot Fasting.", "—")
-    }
-}
-
-class FastingWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget = FastingWidget()
-
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds)
+    override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) =
         refresh(context)
-    }
 
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        super.onDeleted(context, appWidgetIds)
-        refresh(context)
-    }
+    override fun onDeleted(context: Context, ids: IntArray) = refresh(context)
+
+    override fun onDisabled(context: Context) = refresh(context)
 
     private fun refresh(context: Context) {
         context.sendBroadcast(
-            Intent("com.madebygps.dotfasting.REFRESH").setPackage(context.packageName),
+            Intent(context, WidgetRefreshReceiver::class.java).setAction(RefreshCoordinator.ACTION_REFRESH),
         )
     }
 }
+
+internal fun widgetViews(context: Context, state: WidgetState): RemoteViews =
+    RemoteViews(context.packageName, R.layout.fasting_widget).apply {
+        val running = state.status == WidgetStatus.RUNNING
+        setViewVisibility(R.id.widget_timer, if (running) View.VISIBLE else View.GONE)
+        setViewVisibility(R.id.widget_message, if (running) View.GONE else View.VISIBLE)
+        setChronometerCountDown(R.id.widget_timer, false)
+        setChronometer(R.id.widget_timer, state.timerBaseMillis, null, running)
+        setTextViewText(
+            R.id.widget_label,
+            context.getString(if (state.active) R.string.widget_elapsed else R.string.app_name),
+        )
+        setTextViewText(
+            R.id.widget_message,
+            context.getString(
+                when (state.status) {
+                    WidgetStatus.IDLE -> R.string.widget_idle
+                    WidgetStatus.REVIEW -> R.string.widget_review
+                    WidgetStatus.UNAVAILABLE -> R.string.widget_unavailable
+                    WidgetStatus.RUNNING -> R.string.widget_elapsed
+                },
+            ),
+        )
+        setViewVisibility(R.id.widget_progress, if (running) View.VISIBLE else View.GONE)
+        setViewVisibility(R.id.widget_goal, if (running) View.VISIBLE else View.GONE)
+        setProgressBar(R.id.widget_progress, 1000, state.progress, false)
+        setColorStateList(R.id.widget_progress, "setProgressTintList", ColorStateList.valueOf(state.highlight))
+        setContentDescription(
+            R.id.widget_progress,
+            context.getString(R.string.widget_progress_description, state.progress / 10),
+        )
+        setTextViewText(
+            R.id.widget_goal,
+            context.getString(R.string.widget_goal, WidgetTime.duration(state.goalMillis)),
+        )
+        setOnClickPendingIntent(
+            R.id.widget_root,
+            PendingIntent.getActivity(
+                context, 0, Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            ),
+        )
+    }

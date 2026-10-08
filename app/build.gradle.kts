@@ -49,7 +49,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.work)
-    implementation(libs.androidx.glance)
     implementation(libs.kotlinx.coroutines)
     add("withGlyphImplementation", files(glyphSdk))
     testImplementation(libs.junit)

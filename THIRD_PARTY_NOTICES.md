@@ -25,6 +25,9 @@ c889d9e48f9768b90d4ca0762c1a21856c0ab12c). The calendar is an original companion
 using the same 22dp navigation canvas. The Nothing SDK is excluded from that
 project's MIT license.
 
+The bundled `widget_digits.ttf` font is generated from those numeric glyphs by
+`tools/generate_widget_font.py` and is covered by the same MIT notice below.
+
 MIT License
 
 Copyright (c) 2026 Gwyneth Peña-Siguenza
