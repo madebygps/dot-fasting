@@ -56,7 +56,7 @@ object CounterBitmaps {
             color = Color.rgb(242, 242, 242)
         }
         if (idleFlame) {
-            val flameCell = width * 0.52f / flame.size
+            val flameCell = width * 0.36f / flame.size
             val flameLeft = (width - flame.first().length * flameCell) / 2
             val flameTop = (width - flame.size * flameCell) / 2
             flame.forEachIndexed { y, row ->
