@@ -17,8 +17,9 @@ internal suspend fun readWidgetSnapshot(context: Context): WidgetSnapshot {
     check(activeSessions.size <= 1) { "More than one active fast in storage" }
     val active = activeSessions.singleOrNull()
     if (active == null) {
-        val time = counterText(if (settings.countDown) settings.lastGoalMillis ?: 0L else 0L, seconds = false)
-        return WidgetSnapshot(false, "No active fast. $time. Tap to open.", time, highlight = settings.highlightArgb.toInt())
+        return WidgetSnapshot(
+            false, "No active fast. Tap to open.", highlight = settings.highlightArgb.toInt(), idleFlame = true,
+        )
     }
     val state = project(active, clock)
     val time = if (state.needsTimeReview) "—" else counterText(counterMillis(state, settings.countDown), seconds = false)

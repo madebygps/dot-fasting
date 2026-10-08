@@ -20,7 +20,8 @@ backend, analytics or health-data integration.
 - Delete a fast from its History detail view after confirmation. Deletion is
   permanent; deleting an active fast also clears its timer and background status.
 - Optionally receive a goal-met notification.
-- Add a display-only launcher widget. Tapping it opens the app.
+- Add a display-only launcher widget: a circular dotted counter while active,
+  or a monochrome dot-matrix flame when idle. Tapping it opens the app.
 - Optionally use a 25x25 Glyph Toy showing progress, elapsed time or remaining time.
 
 There are no automatic starts/stops, eating-window schedules, streaks, weight-loss
@@ -105,7 +106,8 @@ Reopening after a force-stop restores projections; Android does not deliver
 background events to force-stopped apps until they are reopened.
 
 The widget shows a dot-matrix hours/minutes counter inside a progress circle,
-in the selected direction. No icon, captions or visible timestamp. It is a snapshot, not
+in the selected direction while active, and a monochrome dotted flame when idle.
+There are no captions or visible timestamps. It is a snapshot, not
 a second-by-second timer: it refreshes on state/preference changes and
 periodically while a fast is active (15-minute work interval; Android can defer
 refreshes). Snapshot freshness and direction are in the accessibility
@@ -138,7 +140,8 @@ rows. EDIT in its header opens timestamp correction; active sessions show live
 elapsed time rather than an empty duration.
 Dates and times use the device's local zone without UTC-offset
 suffixes; DST-aware correction still preserves the original offset where possible.
-The passive widget shares the progress circle and selected hours/minutes counter.
+The passive widget shares the progress circle and selected hours/minutes counter,
+replacing the idle counter with an original dot-matrix flame.
 Nothing's SDK supplies hardware integration, not UI components.
 
 This implementation and branding are separate from Dot Habits. Its exact

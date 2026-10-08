@@ -34,6 +34,7 @@ data class WidgetSnapshot(
     val time: String = "00:00",
     val progress: Float = 0f,
     val highlight: Int = 0xFFE8343A.toInt(),
+    val idleFlame: Boolean = false,
 )
 
 class FastingWidget : GlanceAppWidget() {
@@ -47,7 +48,10 @@ class FastingWidget : GlanceAppWidget() {
         } catch (error: SQLiteException) {
             unavailable(error)
         }
-        val counter = CounterBitmaps.draw(snapshot.time, progress = snapshot.progress, highlight = snapshot.highlight)
+        val counter = CounterBitmaps.draw(
+            snapshot.time, progress = snapshot.progress, highlight = snapshot.highlight,
+            idleFlame = snapshot.idleFlame,
+        )
         provideContent {
             val size = LocalSize.current
             val counterWidth = (size.width.value - 20f).coerceAtLeast(1f)
