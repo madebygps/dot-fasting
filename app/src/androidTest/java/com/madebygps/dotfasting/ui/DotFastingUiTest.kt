@@ -1,6 +1,7 @@
 package com.madebygps.dotfasting.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertWidthIsEqualTo
@@ -188,17 +189,60 @@ class DotFastingUiTest {
         compose.onNodeWithContentDescription("Next month").performClick()
     }
 
+    @Test
+    fun historyDeletionRequiresConfirmationAndReturnsToCalendar() {
+        var deleted: Long? = null
+        val end = System.currentTimeMillis()
+        val session = FastSession(1, end - 60_000, end, 3_600_000, completedDurationMillis = 60_000)
+        render(sessions = listOf(session), onDelete = { deleted = it })
+        compose.onNodeWithContentDescription("History").performClick()
+        compose.onNodeWithText(sessionTimeText(session)).performScrollTo().performClick()
+        compose.onNodeWithText("Delete fast").assertIsDisplayed().performClick()
+        compose.waitUntil(5_000) { compose.onNodeWithText("Delete this fast?").isDisplayed() }
+        compose.onNodeWithText("Delete this fast?").assertIsDisplayed()
+        assertNull(deleted)
+        compose.onNodeWithText("Cancel").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Delete this fast?").fetchSemanticsNodes().isEmpty() }
+        assertNull(deleted)
+        compose.onNodeWithContentDescription("Edit timestamps").assertIsDisplayed()
+        compose.onNodeWithText("Delete fast").assertIsDisplayed().performClick()
+        compose.waitUntil(5_000) { compose.onNodeWithText("Delete").isDisplayed() }
+        compose.onNodeWithText("Delete").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("EDIT").fetchSemanticsNodes().isEmpty() }
+        assertEquals(1L, deleted)
+        compose.onNodeWithText("Completed fasts will appear here.").assertIsDisplayed()
+    }
+
+    @Test
+    fun activeDeletionWarnsThatTimerWillBeRemoved() {
+        val start = System.currentTimeMillis()
+        val session = FastSession(1, start, goalMillis = 3_600_000)
+        render(sessions = listOf(session))
+        compose.onNodeWithContentDescription("History").performClick()
+        compose.onNodeWithText(sessionTimeText(session)).performScrollTo().performClick()
+        compose.onNodeWithText("Delete fast").assertIsDisplayed().performClick()
+        compose.waitUntil(5_000) { compose.onNodeWithText("Delete this fast?").isDisplayed() }
+        compose.onNodeWithText("This removes the active timer and its record. This cannot be undone.").assertIsDisplayed()
+        compose.onNodeWithText("Cancel").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Delete this fast?").fetchSemanticsNodes().isEmpty() }
+        back()
+        back()
+        compose.onNodeWithText("End fast").assertIsDisplayed()
+    }
+
     private fun render(
         sessions: List<FastSession> = emptyList(),
         projection: FastProjection? = null,
         error: String? = null,
         onStart: (Long) -> Unit = {},
         onEnd: () -> Unit = {},
+        onDelete: (Long) -> Unit = {},
     ) {
         compose.setContent {
             var countDown by remember { mutableStateOf(false) }
+            var records by remember { mutableStateOf(sessions) }
             DotFastingApp(
-                sessions = sessions,
+                sessions = records,
                 projection = projection,
                 highlightArgb = 0xFFE8343A,
                 lastGoalMillis = null,
@@ -213,6 +257,10 @@ class DotFastingUiTest {
                 onStart = onStart,
                 onEnd = onEnd,
                 onEdit = { _, _, _ -> },
+                onDelete = { id ->
+                    onDelete(id)
+                    records = records.filterNot { it.id == id }
+                },
                 onHighlight = {},
                 onNotifications = {},
                 onNotificationSettings = {},

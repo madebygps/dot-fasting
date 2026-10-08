@@ -52,6 +52,7 @@ class FastingViewModel(application: Application) : AndroidViewModel(application)
     fun start(goalMillis: Long) = mutate { repository.start(goalMillis) }
     fun end() = mutate { repository.end() }
     fun edit(id: Long, start: Long, end: Long?) = mutate { repository.edit(id, start, end) }
+    fun delete(id: Long) = mutate { repository.delete(id) }
     fun highlight(argb: Long) = mutate { settings.setHighlightArgb(argb) }
     fun notifications(enabled: Boolean) = mutate { settings.setNotificationsEnabled(enabled) }
     fun glyph(enabled: Boolean) = mutate { settings.setGlyphEnabled(enabled) }

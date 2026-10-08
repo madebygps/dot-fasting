@@ -130,6 +130,7 @@ class MainActivity : ComponentActivity() {
                 onStart = viewModel::start,
                 onEnd = viewModel::end,
                 onEdit = viewModel::edit,
+                onDelete = viewModel::delete,
                 onHighlight = viewModel::highlight,
                 onNotifications = { enabled ->
                     notificationCapability = GoalNotifications(this@MainActivity).capability()

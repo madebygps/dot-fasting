@@ -44,6 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,6 +97,7 @@ fun DotFastingApp(
     onStart: (Long) -> Unit,
     onEnd: () -> Unit,
     onEdit: (Long, Long, Long?) -> Unit,
+    onDelete: (Long) -> Unit,
     onHighlight: (Long) -> Unit,
     onNotifications: (Boolean) -> Unit,
     onNotificationSettings: () -> Unit,
@@ -109,11 +111,15 @@ fun DotFastingApp(
     var confirmEnd by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var detailId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var deletingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var help by rememberSaveable { mutableStateOf<String?>(null) }
     val active = sessions.firstOrNull { it.endEpochMillis == null }
     val detail = sessions.firstOrNull { it.id == detailId }
     fun back() { if (detailId != null) detailId = null else page = "Home" }
-    BackHandler(enabled = page != "Home" && !goalPicker && !confirmEnd && editingId == null && help == null) { back() }
+    LaunchedEffect(sessions, detailId) {
+        if (detailId != null && detail == null) detailId = null
+    }
+    BackHandler(enabled = page != "Home" && !goalPicker && !confirmEnd && editingId == null && deletingId == null && help == null) { back() }
 
     DotFastingTheme(highlightArgb) {
         Scaffold(
@@ -167,7 +173,10 @@ fun DotFastingApp(
                         onEnd = { confirmEnd = true },
                         onEdit = { editingId = it.id },
                     )
-                    "History" -> if (detail != null) SessionDetail(detail, if (detail.id == active?.id) projection else null)
+                    "History" -> if (detail != null) SessionDetail(
+                        detail, if (detail.id == active?.id) projection else null, busy,
+                        onDelete = { deletingId = detail.id },
+                    )
                         else History(sessions) { detailId = it.id }
                     else -> Settings(
                         highlightArgb, notificationsEnabled, notificationPermissionGranted, notificationStatus, glyphEnabled,
@@ -194,6 +203,26 @@ fun DotFastingApp(
                 onEdit(record.id, start, end)
                 editingId = null
             }
+        }
+        sessions.firstOrNull { it.id == deletingId }?.let { record ->
+            AlertDialog(
+                onDismissRequest = { if (!busy) deletingId = null },
+                title = { Text("Delete this fast?") },
+                text = {
+                    Text(if (record.endEpochMillis == null)
+                        "This removes the active timer and its record. This cannot be undone."
+                    else "This permanently removes the record from History. This cannot be undone.")
+                },
+                confirmButton = {
+                    TextButton(enabled = !busy, onClick = {
+                        deletingId = null
+                        onDelete(record.id)
+                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(enabled = !busy, onClick = { deletingId = null }) { Text("Cancel") }
+                },
+            )
         }
         help?.let { kind ->
             val text = when (kind) {
@@ -364,7 +393,7 @@ private fun History(sessions: List<FastSession>, onOpen: (FastSession) -> Unit) 
 }
 
 @Composable
-private fun SessionDetail(session: FastSession, projection: FastProjection?) {
+private fun SessionDetail(session: FastSession, projection: FastProjection?, busy: Boolean, onDelete: () -> Unit) {
     val duration = session.endEpochMillis?.let { end ->
         session.completedDurationMillis ?: (end - session.startEpochMillis)
     } ?: projection?.elapsedMillis
@@ -392,6 +421,11 @@ private fun SessionDetail(session: FastSession, projection: FastProjection?) {
             Text("Time needs review", color = MaterialTheme.colorScheme.error)
         }
         Spacer(Modifier.height(16.dp))
+        TextButton(
+            enabled = !busy,
+            onClick = onDelete,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) { Text("Delete fast", color = MaterialTheme.colorScheme.error) }
     }
 }
 

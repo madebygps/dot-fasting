@@ -17,6 +17,8 @@ backend, analytics or health-data integration.
   never ends a fast automatically.
 - Save history and correct start/end times. On an active timer, tap **Edit start
   time**, select the date and time, then Save.
+- Delete a fast from its History detail view after confirmation. Deletion is
+  permanent; deleting an active fast also clears its timer and background status.
 - Optionally receive a goal-met notification.
 - Add a display-only launcher widget. Tapping it opens the app.
 - Optionally use a 25x25 Glyph Toy showing progress, elapsed time or remaining time.

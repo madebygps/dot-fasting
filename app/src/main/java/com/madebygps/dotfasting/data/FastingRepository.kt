@@ -107,6 +107,14 @@ class FastingRepository(
         return session
     }
 
+    suspend fun delete(id: Long) {
+        database.withTransaction {
+            if (dao.delete(id) == 0) throw FastingException.SessionNotFound(id)
+            requestRefresh()
+        }
+        refreshAfterCommit()
+    }
+
     suspend fun reconcile(): FastSession? = reconcile(suppressCatchUp = true)
 
     internal suspend fun reconcile(suppressCatchUp: Boolean): FastSession? {

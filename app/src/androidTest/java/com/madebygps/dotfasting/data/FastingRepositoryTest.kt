@@ -163,6 +163,39 @@ class FastingRepositoryTest {
         assertTrue(repository.sessions.first().single().goalNotificationDelivered)
     }
 
+    @Test fun deletingHistoryPreservesOtherSessionsAndRequestsRefresh() = runBlocking {
+        val first = repository.start(60_000)
+        advance(10_000)
+        repository.end()
+        val active = repository.start(60_000)
+        val revision = database.fastingDao().refreshState()!!.revision
+        repository.delete(first.id)
+        assertEquals(listOf(active), repository.sessions.first())
+        assertEquals(revision + 1, database.fastingDao().refreshState()!!.revision)
+        assertEquals(4, refreshes)
+        assertTrue(runCatching { repository.delete(first.id) }.exceptionOrNull() is FastingException.SessionNotFound)
+        assertEquals(4, refreshes)
+    }
+
+    @Test fun deletingActiveClearsTimerAndAllowsAnotherStart() = runBlocking {
+        val active = repository.start(60_000)
+        repository.delete(active.id)
+        assertTrue(repository.sessions.first().isEmpty())
+        assertEquals(null, database.fastingDao().active())
+        assertEquals(2, refreshes)
+        repository.start(60_000)
+        assertEquals(1, repository.sessions.first().size)
+    }
+
+    @Test fun deletionStaysCommittedAndRefreshPendingWhenEffectsFail() = runBlocking {
+        val active = repository.start(60_000)
+        val failing = FastingRepository(context, database, FastingClock { now }) { error("scheduler unavailable") }
+        assertTrue(runCatching { failing.delete(active.id) }.exceptionOrNull() is FastingException.RefreshFailed)
+        assertTrue(repository.sessions.first().isEmpty())
+        val state = database.fastingDao().refreshState()!!
+        assertTrue(state.revision > state.dispatchedRevision)
+    }
+
     @Test fun refreshOutboxSurvivesEffectsFailure() = runBlocking {
         val failing = FastingRepository(context, database, FastingClock { now }) { error("scheduler unavailable") }
         assertTrue(runCatching { failing.start(60_000) }.exceptionOrNull() is FastingException.RefreshFailed)

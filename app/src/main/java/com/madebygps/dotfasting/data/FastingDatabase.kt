@@ -75,6 +75,9 @@ interface FastingDao {
     @Update
     suspend fun update(session: FastSessionEntity)
 
+    @Query("DELETE FROM fast_sessions WHERE id = :id")
+    suspend fun delete(id: Long): Int
+
     @Insert(onConflict = androidx.room.OnConflictStrategy.IGNORE)
     suspend fun createRefreshState(state: RefreshStateEntity)
 
