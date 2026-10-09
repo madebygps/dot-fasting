@@ -26,30 +26,28 @@ class WidgetStateTest {
         assertEquals(highlight, state.highlight)
     }
 
-    @Test fun timerBasePreservesElapsedAndLauncherTicksWithoutNewState() {
+    @Test fun stateIncludesMonotonicElapsedTimeForMinuteDisplay() {
         val state = widgetState(session, clock, highlight)
         assertEquals(WidgetStatus.RUNNING, state.status)
         assertTrue(state.active)
-        assertEquals(300_000L, state.timerBaseMillis)
-        assertEquals(200_000L, clock.elapsedRealtimeMillis - state.timerBaseMillis)
-        assertEquals(260_000L, clock.elapsedRealtimeMillis + 60_000 - state.timerBaseMillis)
+        assertEquals(200_000L, state.elapsedMillis)
         assertEquals(500, state.progress)
         assertEquals(highlight, state.highlight)
+        assertEquals(session.startEpochMillis, state.startEpochMillis)
     }
 
     @Test fun goalNeverStopsElapsedTimerAndProgressCapsAtFull() {
         val state = widgetState(session.copy(goalMillis = 100_000), clock, highlight)
         assertEquals(WidgetStatus.RUNNING, state.status)
-        assertEquals(300_000L, state.timerBaseMillis)
+        assertEquals(200_000L, state.elapsedMillis)
         assertEquals(1000, state.progress)
     }
 
-    @Test fun rebootReanchorsFromWallTimeAndMayUseNegativeBase() {
+    @Test fun rebootReanchorsElapsedTimeFromWallTime() {
         val reboot = ClockSnapshot(1_100_000, 10_000, "new-boot")
         val state = widgetState(session, reboot, highlight)
         assertEquals(WidgetStatus.RUNNING, state.status)
-        assertEquals(-290_000L, state.timerBaseMillis)
-        assertEquals(300_000L, reboot.elapsedRealtimeMillis - state.timerBaseMillis)
+        assertEquals(300_000L, state.elapsedMillis)
     }
 
     @Test fun clockConflictStopsDisplayUntilReviewed() {
@@ -60,6 +58,6 @@ class WidgetStateTest {
 
     @Test fun editedStartTimeChangesTimerBase() {
         val edited = session.copy(elapsedAtAnchorMillis = 50_000)
-        assertEquals(350_000L, widgetState(edited, clock, highlight).timerBaseMillis)
+        assertEquals(150_000L, widgetState(edited, clock, highlight).elapsedMillis)
     }
 }

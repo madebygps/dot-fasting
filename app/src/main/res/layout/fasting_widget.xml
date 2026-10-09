@@ -3,63 +3,81 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:gravity="center"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="12dp">
 
-    <TextView
-        android:id="@+id/widget_label"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/app_name"
-        android:textColor="#B3B3B3"
-        android:textSize="12sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <Chronometer
-        android:id="@+id/widget_timer"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:autoSizeMaxTextSize="36sp"
-        android:autoSizeMinTextSize="8sp"
-        android:autoSizeStepGranularity="1sp"
-        android:autoSizeTextType="uniform"
-        android:fontFamily="@font/widget_digits"
-        android:gravity="center"
-        android:includeFontPadding="false"
-        android:singleLine="true"
-        android:textColor="#F2F2F2"
-        android:visibility="gone" />
+        <ImageView
+            android:id="@+id/widget_ring"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_loading"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/widget_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="8dp"
-        android:gravity="center"
-        android:text="@string/widget_loading"
-        android:textColor="#F2F2F2"
-        android:textSize="14sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp">
 
-    <ProgressBar
-        android:id="@+id/widget_progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="4dp"
-        android:indeterminate="false"
-        android:max="1000"
-        android:progressBackgroundTint="#262626"
-        android:progressTint="#E8343A"
-        android:visibility="gone" />
+            <TextView
+                android:id="@+id/widget_timer"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:autoSizeMaxTextSize="34sp"
+                android:autoSizeMinTextSize="8sp"
+                android:autoSizeStepGranularity="1sp"
+                android:autoSizeTextType="uniform"
+                android:fontFamily="@font/widget_digits"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="#F2F2F2"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/widget_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:letterSpacing="0.12"
+                android:text="@string/widget_elapsed"
+                android:textAllCaps="true"
+                android:textColor="#A0A0A0"
+                android:textSize="9sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:text="@string/widget_loading"
+            android:textColor="#F2F2F2"
+            android:textSize="13sp" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/widget_goal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="5dp"
+        android:fontFamily="monospace"
         android:gravity="center"
-        android:textColor="#B3B3B3"
-        android:textSize="11sp"
+        android:letterSpacing="0.08"
+        android:textColor="#A0A0A0"
+        android:textSize="9sp"
+        android:textAllCaps="true"
         android:visibility="gone" />
 </LinearLayout>

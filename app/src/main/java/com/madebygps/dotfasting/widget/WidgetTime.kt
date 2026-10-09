@@ -5,10 +5,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object WidgetTime {
+    fun elapsed(millis: Long): String {
+        require(millis >= 0) { "Duration cannot be negative" }
+        val minutes = millis / 60_000
+        return "%d:%02d".format(java.util.Locale.ROOT, minutes / 60, minutes % 60)
+    }
+
     fun duration(millis: Long): String {
         require(millis >= 0) { "Duration cannot be negative" }
         val minutes = millis / 60_000
-        return "${minutes / 60}h ${minutes % 60}m"
+        return if (minutes % 60 == 0L) "${minutes / 60}h" else "${minutes / 60}h ${minutes % 60}m"
     }
 
     fun clock(epochMillis: Long, zone: ZoneId = ZoneId.systemDefault()): String =
