@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -68,6 +69,7 @@ import com.madebygps.dotfasting.domain.FastProjection
 import com.madebygps.dotfasting.domain.FastSession
 import com.madebygps.dotfasting.domain.counterMillis
 import com.madebygps.dotfasting.domain.counterText
+import com.madebygps.dotfasting.domain.fastingInsights
 import com.madebygps.dotfasting.domain.historyDays
 import java.time.LocalDate
 import java.time.YearMonth
@@ -77,6 +79,7 @@ data class GlyphUiCapability(
     val available: Boolean,
     val status: String,
     val explanation: String,
+    val showInSettings: Boolean = true,
 )
 
 /** Repository-free public screen API, also usable by previews and instrumented tests. */
@@ -87,8 +90,6 @@ fun DotFastingApp(
     highlightArgb: Long,
     lastGoalMillis: Long?,
     notificationsEnabled: Boolean,
-    notificationPermissionGranted: Boolean,
-    notificationStatus: String,
     glyphEnabled: Boolean,
     glyphCapability: GlyphUiCapability,
     busy: Boolean,
@@ -100,7 +101,6 @@ fun DotFastingApp(
     onDelete: (Long) -> Unit,
     onHighlight: (Long) -> Unit,
     onNotifications: (Boolean) -> Unit,
-    onNotificationSettings: () -> Unit,
     onGlyph: (Boolean) -> Unit,
     onGlyphSetup: () -> Unit,
     countDown: Boolean = false,
@@ -134,6 +134,9 @@ fun DotFastingApp(
                     ) {
                         IconButton(onClick = { page = "History" }, modifier = Modifier.semantics { contentDescription = "History" }) {
                             NavigationIcon(calendar = true)
+                        }
+                        IconButton(onClick = { page = "Progress" }, modifier = Modifier.semantics { contentDescription = "Progress" }) {
+                            ProgressNavigationIcon()
                         }
                         IconButton(onClick = { page = "Settings" }, modifier = Modifier.semantics { contentDescription = "Settings" }) {
                             NavigationIcon(calendar = false)
@@ -178,10 +181,10 @@ fun DotFastingApp(
                         onDelete = { deletingId = detail.id },
                     )
                         else History(sessions) { detailId = it.id }
+                    "Progress" -> Progress(sessions)
                     else -> Settings(
-                        highlightArgb, notificationsEnabled, notificationPermissionGranted, notificationStatus, glyphEnabled,
+                        highlightArgb, notificationsEnabled, glyphEnabled,
                         glyphCapability, busy, onHighlight, onNotifications, onGlyph, onGlyphSetup,
-                        onNotificationSettings = onNotificationSettings,
                         onHelp = { help = it }, countDown = countDown, onCountDown = onCountDown,
                     )
                 }
@@ -226,7 +229,16 @@ fun DotFastingApp(
         }
         help?.let { kind ->
             val text = when (kind) {
-                else -> "TIMER\nCount up shows elapsed time; count down shows time remaining. Reaching the goal never ends a fast. Tap Started to edit its time, or open a History session to correct timestamps. All records stay on this device.\n\nNOTIFICATIONS\nOptional goal alerts require Android notification permission. Battery restrictions can delay delivery. Force-stopping prevents alerts until the app is reopened.\n\nWIDGET\nWidgets show dotted elapsed hours and minutes and keep counting after the goal. While a fast and widget are active, Android requests an update near each minute boundary; battery restrictions can occasionally delay the displayed minute. Tap to open the app.\n\nGLYPH\n${glyphCapability.explanation}\nSelect Dot Fasting in Nothing’s Glyph Toys settings after enabling it here. Long press switches progress, elapsed and remaining views; it never starts or ends a fast. Nothing OS controls availability and brightness.\n\nTIME CHANGES\nReview flagged timestamps after clock changes. Timezone changes affect display only."
+                else -> buildString {
+                    append("TIMER\nCount up shows elapsed time; count down shows time remaining. Reaching the goal never ends a fast. Tap Started to edit its time, or open a History session to correct timestamps. All records stay on this device.")
+                    append("\n\nPROGRESS\nDashboard statistics use completed fasts only. A streak stays current through the day after your latest completed fast.")
+                    append("\n\nNOTIFICATIONS\nOptional goal alerts require Android notification permission. Battery restrictions can delay delivery. Force-stopping prevents alerts until the app is reopened.")
+                    append("\n\nWIDGET\nWidgets show dotted elapsed hours and minutes and keep counting after the goal. While a fast and widget are active, Android requests an update near each minute boundary; battery restrictions can occasionally delay the displayed minute. Tap to open the app.")
+                    if (glyphCapability.showInSettings) {
+                        append("\n\nGLYPH\n${glyphCapability.explanation}\nSelect Dot Fasting in Nothing’s Glyph Toys settings after enabling it here. Long press switches progress, elapsed and remaining views; it never starts or ends a fast. Nothing OS controls availability and brightness.")
+                    }
+                    append("\n\nTIME CHANGES\nReview flagged timestamps after clock changes. Timezone changes affect display only.")
+                }
             }
             AlertDialog(
                 onDismissRequest = { help = null },
@@ -316,6 +328,145 @@ private fun Home(
         Spacer(Modifier.height(12.dp))
         }
         }
+    }
+}
+
+@Composable
+private fun Progress(sessions: List<FastSession>) {
+    val insights = fastingInsights(sessions, ZoneId.systemDefault())
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ProgressDashboard(insights)
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun ProgressDashboard(insights: com.madebygps.dotfasting.domain.FastingInsights) {
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Overview", color = DotColors.Text, style = MaterialTheme.typography.titleMedium)
+            if (insights.longestStreakDays > insights.currentStreakDays) {
+                DotCaption("BEST ${insights.longestStreakDays}D")
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            InsightCard("STREAK", "${insights.currentStreakDays}d", Modifier.weight(1f))
+            InsightCard("COMPLETED", insights.completedCount.toString(), Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            InsightCard(
+                "AVERAGE",
+                if (insights.completedCount == 0) "—" else compactDuration(insights.averageDurationMillis),
+                Modifier.weight(1f),
+            )
+            InsightCard(
+                "GOAL HIT",
+                if (insights.completedCount == 0) "—" else "${insights.goalHitPercent}%",
+                Modifier.weight(1f),
+            )
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            InsightCard(
+                "TOTAL",
+                if (insights.completedCount == 0) "—" else compactDuration(insights.totalDurationMillis),
+                Modifier.weight(1f),
+            )
+            InsightCard(
+                "BEST STREAK",
+                if (insights.longestStreakDays == 0) "—" else "${insights.longestStreakDays}d",
+                Modifier.weight(1f),
+            )
+        }
+        Card(
+            colors = CardDefaults.cardColors(containerColor = DotColors.Surface),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    DotLabel("LAST 7 DAYS")
+                    DotCaption(
+                        if (insights.completedCount == 0) "NO HISTORY"
+                        else "${compactDuration(insights.recentDays.sumOf { it.durationMillis })} TOTAL",
+                    )
+                }
+                WeeklyBars(insights.recentDays)
+            }
+        }
+    }
+}
+
+@Composable
+private fun InsightCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = DotColors.Surface),
+        modifier = modifier,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            DotCaption(label)
+            Text(value, color = DotColors.Text, fontSize = 22.sp, fontFamily = FontFamily.Monospace)
+        }
+    }
+}
+
+@Composable
+private fun WeeklyBars(days: List<com.madebygps.dotfasting.domain.DailyFastingTotal>) {
+    val maxDuration = days.maxOfOrNull { it.durationMillis }?.coerceAtLeast(1L) ?: 1L
+    Row(
+        Modifier.fillMaxWidth().height(86.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        days.forEach { day ->
+            val ratio = day.durationMillis.toFloat() / maxDuration
+            Column(
+                Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Box(
+                    Modifier.fillMaxWidth().height(62.dp),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    Box(
+                        Modifier.fillMaxWidth(0.58f)
+                            .height(if (day.durationMillis == 0L) 2.dp else (8 + 54 * ratio).dp)
+                            .background(
+                                if (day.durationMillis == 0L) DotColors.Line
+                                else MaterialTheme.colorScheme.primary,
+                                CircleShape,
+                            ),
+                    )
+                }
+                DotCaption(day.date.dayOfWeek.name.take(1))
+            }
+        }
+    }
+}
+
+private fun compactDuration(millis: Long): String {
+    val totalMinutes = millis.coerceAtLeast(0L) / 60_000L
+    val hours = totalMinutes / 60L
+    val minutes = totalMinutes % 60L
+    return when {
+        hours == 0L -> "${minutes}m"
+        minutes == 0L -> "${hours}h"
+        else -> "${hours}h ${minutes}m"
     }
 }
 
@@ -503,8 +654,6 @@ internal fun parseCustomGoal(hours: String, minutes: String): Long? {
 private fun Settings(
     highlightArgb: Long,
     notificationsEnabled: Boolean,
-    permissionGranted: Boolean,
-    notificationStatus: String,
     glyphEnabled: Boolean,
     glyph: GlyphUiCapability,
     busy: Boolean,
@@ -512,30 +661,54 @@ private fun Settings(
     onNotifications: (Boolean) -> Unit,
     onGlyph: (Boolean) -> Unit,
     onGlyphSetup: () -> Unit,
-    onNotificationSettings: () -> Unit,
     onHelp: (String) -> Unit,
     countDown: Boolean,
     onCountDown: (Boolean) -> Unit,
 ) {
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        DotLabel("TIMER")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Count up" to false, "Count down" to true).forEach { (label, down) ->
-                OutlinedButton(
-                    enabled = !busy, onClick = { onCountDown(down) },
-                    modifier = Modifier.semantics { selected = countDown == down },
-                ) { Text(label, color = if (countDown == down) MaterialTheme.colorScheme.primary else DotColors.Muted) }
+        SettingsSection("TIMER") {
+            Text("Timer display", color = DotColors.Text, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Choose what the main timer emphasizes while a fast is active.",
+                color = DotColors.Muted,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Elapsed" to false, "Remaining" to true).forEach { (label, down) ->
+                    val selected = countDown == down
+                    Surface(
+                        onClick = { onCountDown(down) },
+                        enabled = !busy,
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (selected) MaterialTheme.colorScheme.primary else DotColors.Container,
+                        modifier = Modifier.weight(1f).semantics { this.selected = selected },
+                    ) {
+                        Text(
+                            label,
+                            Modifier.padding(vertical = 12.dp),
+                            color = if (selected) MaterialTheme.colorScheme.onPrimary else DotColors.Text,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
             }
         }
-        HorizontalDivider(color = DotColors.Line)
-        DotLabel("HIGHLIGHT")
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+        SettingsSection("APPEARANCE") {
+            Text("Highlight color", color = DotColors.Text, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Used for progress, active controls and weekly activity.",
+                color = DotColors.Muted,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 DotColors.Highlights.forEach { (name, argb) ->
                     Box(
-                        Modifier.size(44.dp).clip(CircleShape)
+                        Modifier.size(46.dp).clip(CircleShape)
                             .border(2.dp, if (highlightArgb == argb) DotColors.Text else Color.Transparent, CircleShape)
                             .semantics { contentDescription = name; selected = highlightArgb == argb }
                             .clickable(enabled = !busy, role = Role.RadioButton) { onHighlight(argb) },
@@ -544,31 +717,106 @@ private fun Settings(
                         Box(
                             Modifier.size(34.dp).background(Color(argb.toInt()), CircleShape),
                         )
+                    }
                 }
             }
         }
-        HorizontalDivider(color = DotColors.Line)
-        SettingToggle("GOAL NOTIFICATION", notificationsEnabled, !busy, onNotifications)
-        Text(notificationStatus, style = MaterialTheme.typography.bodySmall, color = DotColors.Muted)
-        if (notificationsEnabled || !permissionGranted) {
-            TextButton(onClick = onNotificationSettings) { Text("ANDROID SETTINGS") }
+
+        SettingsSection("ALERTS") {
+            SettingToggle(
+                label = "Goal notification",
+                description = "Get one alert when an active fast reaches its goal.",
+                checked = notificationsEnabled,
+                enabled = !busy,
+                onChange = onNotifications,
+            )
         }
-        HorizontalDivider(color = DotColors.Line)
-        SettingToggle("GLYPH TOY", glyphEnabled, !busy && (glyph.available || glyphEnabled), onGlyph)
-        Text(glyph.status, style = MaterialTheme.typography.bodySmall, color = DotColors.Muted)
-        if (glyph.available && glyphEnabled) {
-            TextButton(enabled = !busy, onClick = onGlyphSetup) { Text("TOYS SETTINGS") }
+
+        if (glyph.showInSettings) {
+            SettingsSection("NOTHING PHONE") {
+                SettingToggle(
+                    label = "Glyph Toy",
+                    description = "Show fasting progress on the Glyph Matrix.",
+                    checked = glyphEnabled,
+                    enabled = !busy && (glyph.available || glyphEnabled),
+                    onChange = onGlyph,
+                )
+                HorizontalDivider(color = DotColors.Line)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        glyph.status,
+                        Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DotColors.Muted,
+                    )
+                    if (glyph.available && glyphEnabled) {
+                        TextButton(enabled = !busy, onClick = onGlyphSetup) { Text("TOYS SETTINGS") }
+                    }
+                }
+            }
         }
-        HorizontalDivider(color = DotColors.Line)
-        TextButton(onClick = { onHelp("about") }) { Text("Help") }
+
+        SettingsSection("ABOUT") {
+            Row(
+                Modifier.fillMaxWidth().clickable(role = Role.Button) { onHelp("about") }.padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("About Dot Fasting", color = DotColors.Text, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "How timers, privacy, widgets and time changes work.",
+                        color = DotColors.Muted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Text("VIEW", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+            }
+        }
         Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
-private fun SettingToggle(label: String, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        DotLabel(label, modifier = Modifier.weight(1f))
+private fun SettingsSection(
+    label: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        DotLabel(label)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = DotColors.Surface),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                content = content,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingToggle(
+    label: String,
+    description: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().sizeIn(minHeight = 56.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(label, color = DotColors.Text, style = MaterialTheme.typography.titleMedium)
+            Text(description, color = DotColors.Muted, style = MaterialTheme.typography.bodySmall)
+        }
         Switch(checked = checked, onCheckedChange = onChange, enabled = enabled, modifier = Modifier.semantics { contentDescription = label })
     }
 }

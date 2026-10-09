@@ -2,9 +2,7 @@ package com.madebygps.dotfasting
 
 import android.Manifest
 import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -89,9 +87,11 @@ class MainActivity : ComponentActivity() {
                 GlyphCapabilityState.SDK_NOT_INCLUDED -> GlyphUiCapability(
                     false, "Glyph SDK not included",
                     "This build works without the optional Nothing SDK. A separate SDK-enabled build and supported Phone (3) are required for Glyph Toys.",
+                    showInSettings = false,
                 )
                 GlyphCapabilityState.UNSUPPORTED_HARDWARE -> GlyphUiCapability(
                     false, "Unsupported hardware", "Glyph Matrix Toys require a supported Nothing Phone (3).",
+                    showInSettings = false,
                 )
                 GlyphCapabilityState.SERVICE_UNAVAILABLE -> GlyphUiCapability(
                     false, "Glyph service unavailable", "Nothing’s Glyph service is not available. Check system settings and try again.",
@@ -113,13 +113,6 @@ class MainActivity : ComponentActivity() {
                 highlightArgb = state.settings.highlightArgb,
                 lastGoalMillis = state.settings.lastGoalMillis,
                 notificationsEnabled = state.settings.notificationsEnabled,
-                notificationPermissionGranted = notificationCapability == GoalNotificationCapability.AVAILABLE,
-                notificationStatus = when (notificationCapability) {
-                    GoalNotificationCapability.AVAILABLE -> "Available"
-                    GoalNotificationCapability.PERMISSION_REQUIRED -> "Notification permission required"
-                    GoalNotificationCapability.APP_BLOCKED -> "All app notifications are disabled"
-                    GoalNotificationCapability.CHANNEL_BLOCKED -> "Fasting goal channel is disabled"
-                },
                 glyphEnabled = state.settings.glyphEnabled,
                 countDown = state.settings.countDown,
                 onCountDown = viewModel::countDown,
@@ -138,19 +131,7 @@ class MainActivity : ComponentActivity() {
                         !enabled -> viewModel.notifications(false)
                         notificationCapability == GoalNotificationCapability.AVAILABLE -> viewModel.notifications(true)
                         notificationCapability == GoalNotificationCapability.PERMISSION_REQUIRED -> permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        else -> viewModel.showMessage("Goal notifications are blocked. Open notification settings below, enable app notifications and the Fasting goal channel, then try again.")
-                    }
-                },
-                onNotificationSettings = {
-                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                        .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                    try {
-                        if (intent.resolveActivity(packageManager) != null) startActivity(intent)
-                        else viewModel.showMessage("Notification settings are unavailable. Open Android Settings → Apps → Dot Fasting → Notifications.")
-                    } catch (error: ActivityNotFoundException) {
-                        viewModel.reportError(error)
-                    } catch (error: SecurityException) {
-                        viewModel.reportError(error)
+                        else -> viewModel.showMessage("Goal notifications are blocked. Enable Dot Fasting notifications in Android Settings, then try again.")
                     }
                 },
                 onGlyph = viewModel::glyph,
