@@ -10,8 +10,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Bundle
+import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.content.ContextCompat
 import com.madebygps.dotfasting.MainActivity
 import com.madebygps.dotfasting.R
 import com.madebygps.dotfasting.domain.RingGeometry
@@ -41,14 +43,71 @@ class CompactFastingWidgetReceiver : FastingWidgetReceiver()
 
 class WideFastingWidgetReceiver : FastingWidgetReceiver()
 
+class LargeFastingWidgetReceiver : FastingWidgetReceiver()
+
 internal enum class WidgetVariant(
     val layout: Int,
-    val provider: Class<out AppWidgetProvider>,
     val ringSizePixels: Int,
+    val compact: Boolean = false,
+    val detailed: Boolean = false,
 ) {
-    COMPACT(R.layout.fasting_widget_compact, CompactFastingWidgetReceiver::class.java, 160),
-    RING(R.layout.fasting_widget, FastingWidgetReceiver::class.java, 256),
-    WIDE(R.layout.fasting_widget_wide, WideFastingWidgetReceiver::class.java, 192),
+    COMPACT(R.layout.fasting_widget_compact, 160, compact = true),
+    RING(R.layout.fasting_widget, 256),
+    WIDE(R.layout.fasting_widget_wide, 192, detailed = true),
+    LARGE(R.layout.fasting_widget_large, 384, detailed = true),
+    ;
+
+    companion object {
+        private const val PADDING_DP = 8f
+
+        fun forSize(widthDp: Float, heightDp: Float): WidgetVariant {
+            val width = (widthDp - 2 * PADDING_DP).coerceAtLeast(16f)
+            val height = (heightDp - 2 * PADDING_DP).coerceAtLeast(16f)
+            return when {
+                width < 104f || (height < 56f && width < 180f) -> COMPACT
+                height < 125f || width >= 1.45f * height -> WIDE
+                width >= 220f && height >= 220f -> LARGE
+                else -> RING
+            }
+        }
+    }
+}
+
+internal enum class WidgetProvider(
+    val provider: Class<out AppWidgetProvider>,
+    val defaultVariant: WidgetVariant,
+) {
+    COMPACT(CompactFastingWidgetReceiver::class.java, WidgetVariant.COMPACT),
+    RING(FastingWidgetReceiver::class.java, WidgetVariant.RING),
+    WIDE(WideFastingWidgetReceiver::class.java, WidgetVariant.WIDE),
+    LARGE(LargeFastingWidgetReceiver::class.java, WidgetVariant.LARGE),
+}
+
+internal fun responsiveWidgetViews(
+    context: Context,
+    state: WidgetState,
+    options: Bundle,
+    fallback: WidgetVariant,
+): RemoteViews {
+    val sizes = options.getParcelableArrayList(
+        AppWidgetManager.OPTION_APPWIDGET_SIZES,
+        SizeF::class.java,
+    ).orEmpty()
+    if (sizes.isNotEmpty()) {
+        return RemoteViews(
+            sizes.distinct().associateWith { size ->
+                widgetViews(context, state, WidgetVariant.forSize(size.width, size.height))
+            },
+        )
+    }
+    val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+    val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+    val variant = if (width > 0 && height > 0) {
+        WidgetVariant.forSize(width.toFloat(), height.toFloat())
+    } else {
+        fallback
+    }
+    return widgetViews(context, state, variant)
 }
 
 internal fun widgetViews(
@@ -64,19 +123,25 @@ internal fun widgetViews(
         setTextViewText(R.id.widget_timer, WidgetTime.elapsed(state.counterMillis))
         setImageViewBitmap(
             R.id.widget_ring,
-            progressRingBitmap(state.progress, state.highlight, variant.ringSizePixels),
+            progressRingBitmap(
+                state.progress,
+                state.highlight,
+                ContextCompat.getColor(context, R.color.widget_track),
+                variant.ringSizePixels,
+            ),
         )
         setTextViewText(
             R.id.widget_message,
             context.getString(
-                when (variant) {
-                    WidgetVariant.COMPACT -> when (state.status) {
+                if (variant.compact) {
+                    when (state.status) {
                         WidgetStatus.IDLE -> R.string.widget_idle_compact
                         WidgetStatus.REVIEW -> R.string.widget_review_compact
                         WidgetStatus.UNAVAILABLE -> R.string.widget_unavailable_compact
                         WidgetStatus.RUNNING -> R.string.widget_elapsed
                     }
-                    else -> when (state.status) {
+                } else {
+                    when (state.status) {
                         WidgetStatus.IDLE -> R.string.widget_idle
                         WidgetStatus.REVIEW -> R.string.widget_review
                         WidgetStatus.UNAVAILABLE -> R.string.widget_unavailable
@@ -89,7 +154,7 @@ internal fun widgetViews(
             R.id.widget_ring,
             context.getString(R.string.widget_progress_description, state.progress / 10),
         )
-        if (variant != WidgetVariant.COMPACT) {
+        if (!variant.compact) {
             setViewVisibility(R.id.widget_label, if (running) View.VISIBLE else View.GONE)
             setViewVisibility(R.id.widget_goal, if (running) View.VISIBLE else View.GONE)
             setTextViewText(
@@ -107,7 +172,7 @@ internal fun widgetViews(
                 context.getString(R.string.widget_goal, WidgetTime.duration(state.goalMillis)),
             )
         }
-        if (variant == WidgetVariant.WIDE) {
+        if (variant.detailed) {
             setViewVisibility(R.id.widget_started, if (running) View.VISIBLE else View.GONE)
             setViewVisibility(R.id.widget_status, if (running) View.VISIBLE else View.GONE)
             setTextViewText(
@@ -133,7 +198,7 @@ internal fun widgetViews(
         )
     }
 
-internal fun progressRingBitmap(progress: Int, highlight: Int, sizePixels: Int): Bitmap {
+internal fun progressRingBitmap(progress: Int, highlight: Int, track: Int, sizePixels: Int): Bitmap {
     val size = sizePixels.coerceAtLeast(1)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -144,7 +209,7 @@ internal fun progressRingBitmap(progress: Int, highlight: Int, sizePixels: Int):
         style = Paint.Style.STROKE
         strokeWidth = stroke
         strokeCap = Paint.Cap.BUTT
-        color = 0xFF343434.toInt()
+        color = track
     }
     canvas.drawArc(bounds, 0f, 360f, false, paint)
     if (progress > 0) {

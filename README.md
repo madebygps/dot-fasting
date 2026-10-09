@@ -10,7 +10,7 @@ Black UI, dot-matrix icons, one highlight colour. Works fully offline, with no a
 - **Progress:** an offline dashboard shows current and best streaks, completed fasts, total and average fasting time, goal completion rate and the last seven days of activity.
 - **History:** a Monday-first calendar marks days with completed fasts. Tap a session to edit its start and end dates and times independently, or delete it.
 - **Notifications:** optional goal alerts.
-- **Widgets** (display only): compact 1x1, progress-ring 2x2 and detailed wide 4x2 options. Each follows the app's elapsed or remaining timer setting and shows dotted hours and minutes; progress and details refresh with the timer. Tap to open the app.
+- **Widgets** (display only): compact 1x1, progress-ring 2x2, detailed wide 4x2 and large 4x4 presets. Each uses a translucent day/night surface, adapts its layout when resized, follows the app's elapsed or remaining timer setting and refreshes with the timer. Tap to open the app.
 - **Glyph Toy:** progress, elapsed and remaining views. Long press switches views; short press cycles system Toys.
 
 ## Build

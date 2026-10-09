@@ -3,9 +3,11 @@
     <string name="widget_name_ring">Dot Fasting - Ring</string>
     <string name="widget_name_compact">Dot Fasting - Compact</string>
     <string name="widget_name_wide">Dot Fasting - Wide</string>
+    <string name="widget_name_large">Dot Fasting - Large</string>
     <string name="widget_description_ring">Live timer inside the Dot Fasting progress ring.</string>
     <string name="widget_description_compact">Small live fasting timer and progress ring.</string>
     <string name="widget_description_wide">Live fasting timer with goal and start details.</string>
+    <string name="widget_description_large">Large live fasting timer with progress and details.</string>
     <string name="widget_loading">Loading timer\u2026</string>
     <string name="widget_elapsed">Elapsed</string>
     <string name="widget_remaining">Remaining</string>

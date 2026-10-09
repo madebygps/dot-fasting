@@ -21,7 +21,7 @@
         android:gravity="center"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:textColor="#F2F2F2"
+        android:textColor="@color/widget_foreground"
         android:textSize="11sp"
         android:visibility="gone" />
 
@@ -33,6 +33,6 @@
         android:gravity="center"
         android:letterSpacing="0.08"
         android:text="@string/widget_loading"
-        android:textColor="#F2F2F2"
+        android:textColor="@color/widget_foreground"
         android:textSize="10sp" />
 </FrameLayout>

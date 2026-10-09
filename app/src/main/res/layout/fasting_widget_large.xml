@@ -5,11 +5,26 @@
     android:background="@drawable/widget_background"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/widget_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:letterSpacing="0.12"
+        android:text="@string/widget_fasting"
+        android:textAllCaps="true"
+        android:textColor="@color/widget_foreground"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1">
 
         <ImageView
@@ -25,14 +40,14 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="18dp">
+            android:paddingHorizontal="36dp">
 
             <TextView
                 android:id="@+id/widget_timer"
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:autoSizeMaxTextSize="34sp"
-                android:autoSizeMinTextSize="8sp"
+                android:layout_height="58dp"
+                android:autoSizeMaxTextSize="48sp"
+                android:autoSizeMinTextSize="10sp"
                 android:autoSizeStepGranularity="1sp"
                 android:autoSizeTextType="uniform"
                 android:fontFamily="@font/widget_digits"
@@ -46,14 +61,14 @@
                 android:id="@+id/widget_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:fontFamily="monospace"
                 android:gravity="center"
                 android:letterSpacing="0.12"
                 android:text="@string/widget_elapsed"
                 android:textAllCaps="true"
                 android:textColor="@color/widget_dim"
-                android:textSize="9sp"
+                android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -65,19 +80,29 @@
             android:gravity="center"
             android:text="@string/widget_loading"
             android:textColor="@color/widget_foreground"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
     </FrameLayout>
 
     <TextView
         android:id="@+id/widget_goal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:textAllCaps="true"
+        android:textColor="@color/widget_foreground"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/widget_started"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:fontFamily="monospace"
         android:gravity="center"
-        android:letterSpacing="0.08"
         android:textColor="@color/widget_dim"
-        android:textSize="9sp"
-        android:textAllCaps="true"
+        android:textSize="11sp"
         android:visibility="gone" />
 </LinearLayout>

@@ -76,6 +76,20 @@ class FastingWidgetTest {
         )
     }
 
+    @Test fun largeWidgetShowsExpandedFastingDetails() {
+        val state = WidgetState(
+            WidgetStatus.RUNNING,
+            elapsedMillis = 65_000,
+            progress = 250,
+            goalMillis = 3_600_000,
+            startEpochMillis = 1_700_000_000_000,
+        )
+        val root = widgetViews(context, state, WidgetVariant.LARGE).apply(context, null)
+        assertEquals(View.VISIBLE, root.findViewById<TextView>(R.id.widget_status).visibility)
+        assertEquals(View.VISIBLE, root.findViewById<TextView>(R.id.widget_started).visibility)
+        assertEquals(View.VISIBLE, root.findViewById<TextView>(R.id.widget_goal).visibility)
+    }
+
     @Test fun endingFastHidesTimerAndProgressEvenWhenReapplyingExistingViews() {
         val running = widgetViews(context, WidgetState(WidgetStatus.RUNNING))
         val root = running.apply(context, null)

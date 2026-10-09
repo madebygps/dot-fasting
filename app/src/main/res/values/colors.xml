@@ -1,0 +1,6 @@
+<resources>
+    <color name="widget_background">#D9F1F1F1</color>
+    <color name="widget_foreground">#FF000000</color>
+    <color name="widget_track">#FF9A9A96</color>
+    <color name="widget_dim">#FF666663</color>
+</resources>
