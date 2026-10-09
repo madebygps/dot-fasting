@@ -25,8 +25,8 @@ object WidgetRefresh {
 
     suspend fun update(context: Context) {
         val widgets = AppWidgetManager.getInstance(context)
-        val instances = WidgetVariant.entries.associateWith { variant ->
-            widgets.getAppWidgetIds(ComponentName(context, variant.provider))
+        val instances = WidgetProvider.entries.associateWith { provider ->
+            widgets.getAppWidgetIds(ComponentName(context, provider.provider))
         }
         if (instances.values.all(IntArray::isEmpty)) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
@@ -36,21 +36,15 @@ object WidgetRefresh {
         val state = try {
             readWidgetState(context)
         } catch (error: IOException) {
-            instances.forEach { (variant, ids) ->
-                widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE), variant))
-            }
+            updateWidgets(context, widgets, instances, WidgetState(WidgetStatus.UNAVAILABLE))
             WidgetMinuteRefresh.cancel(context)
             throw error
         } catch (error: SQLiteException) {
-            instances.forEach { (variant, ids) ->
-                widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE), variant))
-            }
+            updateWidgets(context, widgets, instances, WidgetState(WidgetStatus.UNAVAILABLE))
             WidgetMinuteRefresh.cancel(context)
             throw error
         }
-        instances.forEach { (variant, ids) ->
-            widgets.updateAppWidget(ids, widgetViews(context, state, variant))
-        }
+        updateWidgets(context, widgets, instances, state)
         val manager = WorkManager.getInstance(context)
         if (state.active) {
             manager.enqueueUniquePeriodicWork(
@@ -62,9 +56,30 @@ object WidgetRefresh {
             manager.cancelUniqueWork(WORK_NAME)
         }
         if (state.status == WidgetStatus.RUNNING) {
-            WidgetMinuteRefresh.schedule(context, state.elapsedMillis)
+            WidgetMinuteRefresh.schedule(context, state.counterMillis, state.countDown)
         } else {
             WidgetMinuteRefresh.cancel(context)
+        }
+    }
+
+    private fun updateWidgets(
+        context: Context,
+        manager: AppWidgetManager,
+        instances: Map<WidgetProvider, IntArray>,
+        state: WidgetState,
+    ) {
+        instances.forEach { (provider, ids) ->
+            ids.forEach { id ->
+                manager.updateAppWidget(
+                    id,
+                    responsiveWidgetViews(
+                        context,
+                        state,
+                        manager.getAppWidgetOptions(id),
+                        provider.defaultVariant,
+                    ),
+                )
+            }
         }
     }
 }
