@@ -31,9 +31,17 @@ class WidgetStateTest {
         assertEquals(WidgetStatus.RUNNING, state.status)
         assertTrue(state.active)
         assertEquals(200_000L, state.elapsedMillis)
+        assertEquals(200_000L, state.counterMillis)
         assertEquals(500, state.progress)
         assertEquals(highlight, state.highlight)
         assertEquals(session.startEpochMillis, state.startEpochMillis)
+    }
+
+    @Test fun countDownUsesRemainingTimeForMinuteDisplay() {
+        val state = widgetState(session.copy(goalMillis = 500_000), clock, highlight, countDown = true)
+        assertTrue(state.countDown)
+        assertEquals(300_000L, state.remainingMillis)
+        assertEquals(300_000L, state.counterMillis)
     }
 
     @Test fun goalNeverStopsElapsedTimerAndProgressCapsAtFull() {
@@ -41,6 +49,12 @@ class WidgetStateTest {
         assertEquals(WidgetStatus.RUNNING, state.status)
         assertEquals(200_000L, state.elapsedMillis)
         assertEquals(1000, state.progress)
+    }
+
+    @Test fun remainingTimerStopsAtZeroAfterGoal() {
+        val state = widgetState(session.copy(goalMillis = 100_000), clock, highlight, countDown = true)
+        assertEquals(0L, state.remainingMillis)
+        assertEquals(0L, state.counterMillis)
     }
 
     @Test fun rebootReanchorsElapsedTimeFromWallTime() {

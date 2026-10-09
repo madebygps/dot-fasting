@@ -61,7 +61,7 @@ internal fun widgetViews(
         setViewVisibility(R.id.widget_timer, if (running) View.VISIBLE else View.GONE)
         setViewVisibility(R.id.widget_message, if (running) View.GONE else View.VISIBLE)
         setViewVisibility(R.id.widget_ring, if (running) View.VISIBLE else View.GONE)
-        setTextViewText(R.id.widget_timer, WidgetTime.elapsed(state.elapsedMillis))
+        setTextViewText(R.id.widget_timer, WidgetTime.elapsed(state.counterMillis))
         setImageViewBitmap(
             R.id.widget_ring,
             progressRingBitmap(state.progress, state.highlight, variant.ringSizePixels),
@@ -95,7 +95,11 @@ internal fun widgetViews(
             setTextViewText(
                 R.id.widget_label,
                 context.getString(
-                    if (state.progress >= 1000) R.string.widget_goal_met else R.string.widget_elapsed,
+                    when {
+                        state.progress >= 1000 -> R.string.widget_goal_met
+                        state.countDown -> R.string.widget_remaining
+                        else -> R.string.widget_elapsed
+                    },
                 ),
             )
             setTextViewText(

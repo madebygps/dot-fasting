@@ -19,11 +19,19 @@ internal data class WidgetState(
     val goalMillis: Long = 0,
     val highlight: Int = 0xFFE8343A.toInt(),
     val startEpochMillis: Long? = null,
+    val remainingMillis: Long = 0,
+    val countDown: Boolean = false,
 ) {
     val active: Boolean get() = status == WidgetStatus.RUNNING || status == WidgetStatus.REVIEW
+    val counterMillis: Long get() = if (countDown) remainingMillis else elapsedMillis
 }
 
-internal fun widgetState(active: FastSession?, clock: ClockSnapshot, highlight: Int): WidgetState {
+internal fun widgetState(
+    active: FastSession?,
+    clock: ClockSnapshot,
+    highlight: Int,
+    countDown: Boolean = false,
+): WidgetState {
     if (active == null) return WidgetState(WidgetStatus.IDLE, highlight = highlight)
     val state = project(active, clock)
     return WidgetState(
@@ -33,6 +41,8 @@ internal fun widgetState(active: FastSession?, clock: ClockSnapshot, highlight: 
         goalMillis = active.goalMillis,
         highlight = highlight,
         startEpochMillis = active.startEpochMillis,
+        remainingMillis = state.remainingMillis,
+        countDown = countDown,
     )
 }
 
@@ -42,5 +52,10 @@ internal suspend fun readWidgetState(context: Context): WidgetState {
     val clock = AndroidFastingClock(context).snapshot()
     val activeSessions = sessions.filter { it.endEpochMillis == null }
     check(activeSessions.size <= 1) { "More than one active fast in storage" }
-    return widgetState(activeSessions.singleOrNull(), clock, settings.highlightArgb.toInt())
+    return widgetState(
+        activeSessions.singleOrNull(),
+        clock,
+        settings.highlightArgb.toInt(),
+        settings.countDown,
+    )
 }

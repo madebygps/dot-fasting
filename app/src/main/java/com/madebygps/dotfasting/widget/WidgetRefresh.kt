@@ -62,7 +62,7 @@ object WidgetRefresh {
             manager.cancelUniqueWork(WORK_NAME)
         }
         if (state.status == WidgetStatus.RUNNING) {
-            WidgetMinuteRefresh.schedule(context, state.elapsedMillis)
+            WidgetMinuteRefresh.schedule(context, state.counterMillis, state.countDown)
         } else {
             WidgetMinuteRefresh.cancel(context)
         }

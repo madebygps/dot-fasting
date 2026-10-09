@@ -233,7 +233,7 @@ fun DotFastingApp(
                     append("TIMER\nCount up shows elapsed time; count down shows time remaining. Reaching the goal never ends a fast. Tap Started to edit its time, or open a History session to correct timestamps. All records stay on this device.")
                     append("\n\nPROGRESS\nDashboard statistics use completed fasts only. A streak stays current through the day after your latest completed fast.")
                     append("\n\nNOTIFICATIONS\nOptional goal alerts require Android notification permission. Battery restrictions can delay delivery. Force-stopping prevents alerts until the app is reopened.")
-                    append("\n\nWIDGET\nWidgets show dotted elapsed hours and minutes and keep counting after the goal. While a fast and widget are active, Android requests an update near each minute boundary; battery restrictions can occasionally delay the displayed minute. Tap to open the app.")
+                    append("\n\nWIDGET\nWidgets use the timer's elapsed or remaining display setting and show dotted hours and minutes. Elapsed time keeps counting after the goal; remaining time stops at zero. While a fast and widget are active, Android requests an update near each minute boundary; battery restrictions can occasionally delay the displayed minute. Tap to open the app.")
                     if (glyphCapability.showInSettings) {
                         append("\n\nGLYPH\n${glyphCapability.explanation}\nSelect Dot Fasting in Nothing’s Glyph Toys settings after enabling it here. Long press switches progress, elapsed and remaining views; it never starts or ends a fast. Nothing OS controls availability and brightness.")
                     }
