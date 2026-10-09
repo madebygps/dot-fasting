@@ -126,7 +126,10 @@ internal fun widgetViews(
             progressRingBitmap(
                 state.progress,
                 state.highlight,
-                ContextCompat.getColor(context, R.color.widget_track),
+                ContextCompat.getColor(
+                    context,
+                    if (variant.compact) R.color.widget_track_compact else R.color.widget_track,
+                ),
                 variant.ringSizePixels,
             ),
         )

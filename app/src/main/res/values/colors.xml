@@ -1,6 +1,8 @@
 <resources>
     <color name="widget_background">#FF0D2B28</color>
+    <color name="widget_background_compact">#FF181818</color>
     <color name="widget_foreground">#FFFFFFFF</color>
     <color name="widget_track">#665EEAD4</color>
+    <color name="widget_track_compact">#FF3F3F3F</color>
     <color name="widget_dim">#E6FFFFFF</color>
 </resources>
