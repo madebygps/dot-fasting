@@ -54,6 +54,27 @@ fun NavigationIcon(calendar: Boolean) {
 }
 
 @Composable
+fun ProgressNavigationIcon() {
+    val accent = MaterialTheme.colorScheme.primary
+    Canvas(Modifier.size(22.dp)) {
+        val barWidth = size.width * 0.18f
+        val gap = size.width * 0.12f
+        val heights = listOf(0.42f, 0.7f, 1f)
+        heights.forEachIndexed { index, height ->
+            drawRoundRect(
+                color = if (index == heights.lastIndex) accent else DotColors.Text,
+                topLeft = Offset(
+                    x = size.width * 0.1f + index * (barWidth + gap),
+                    y = size.height * (1f - height),
+                ),
+                size = Size(barWidth, size.height * height),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2),
+            )
+        }
+    }
+}
+
+@Composable
 fun ProgressRing(progress: Float, description: String, modifier: Modifier = Modifier) {
     val accent = MaterialTheme.colorScheme.primary
     Canvas(modifier.semantics { contentDescription = description }) {

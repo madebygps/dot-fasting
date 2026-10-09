@@ -7,6 +7,7 @@ Black UI, dot-matrix icons, one highlight colour. Works fully offline, with no a
 
 - **Timer:** a large progress ring with count-up or count-down display. Start and end fasts manually.
 - **Goals:** choose 12h, 16h, 18h, 24h or a custom duration. Reaching the goal never ends a fast.
+- **Progress:** an offline dashboard shows current and best streaks, completed fasts, total and average fasting time, goal completion rate and the last seven days of activity.
 - **History:** a Monday-first calendar marks days with completed fasts. Tap a session to edit its start and end dates and times independently, or delete it.
 - **Notifications:** optional goal alerts.
 - **Widgets** (display only): compact 1x1, progress-ring 2x2 and detailed wide 4x2 options. Each shows dotted elapsed hours and minutes; progress and details refresh with the timer. Tap to open the app. Widgets always count up, independently of the app's count-down setting.

@@ -54,13 +54,17 @@ class DotFastingUiTest {
         capture("idle")
         compose.onNodeWithContentDescription("Settings").performClick()
         compose.onNodeWithText("?").assertDoesNotExist()
-        compose.onNodeWithText("GOAL NOTIFICATION").assertIsDisplayed()
-        compose.onNodeWithText("GLYPH TOY").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Help").performScrollTo().performClick()
+        compose.onNodeWithText("Goal notification").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Glyph Toy").assertDoesNotExist()
+        compose.onNodeWithText("About Dot Fasting").performScrollTo().performClick()
         compose.onNodeWithText("About Dot Fasting").assertIsDisplayed()
         compose.onNodeWithText("Got it").performClick()
         capture("settings")
         compose.onNodeWithText("BACK").assertDoesNotExist()
+        back()
+        compose.onNodeWithContentDescription("Progress").performClick()
+        compose.onNodeWithText("Overview").assertIsDisplayed()
+        compose.onNodeWithText("NO HISTORY").performScrollTo().assertIsDisplayed()
         back()
         compose.onNodeWithContentDescription("History").performClick()
         compose.onNodeWithText("Completed fasts will appear here.").assertIsDisplayed()
@@ -75,7 +79,7 @@ class DotFastingUiTest {
         )
         compose.onNodeWithText("01:00:00").assertIsDisplayed()
         compose.onNodeWithContentDescription("Settings").performClick()
-        compose.onNodeWithText("Count down").performClick().assertIsSelected()
+        compose.onNodeWithText("Remaining").performClick().assertIsSelected()
         back()
         compose.onNodeWithText("02:00:00").assertIsDisplayed()
         compose.onNodeWithText("ESTIMATED PHASE").assertDoesNotExist()
@@ -253,10 +257,13 @@ class DotFastingUiTest {
                 highlightArgb = 0xFFE8343A,
                 lastGoalMillis = null,
                 notificationsEnabled = false,
-                notificationPermissionGranted = false,
-                notificationStatus = "Notification permission required",
                 glyphEnabled = false,
-                glyphCapability = GlyphUiCapability(false, "Glyph SDK not included", "Optional SDK missing."),
+                glyphCapability = GlyphUiCapability(
+                    false,
+                    "Glyph SDK not included",
+                    "Optional SDK missing.",
+                    showInSettings = false,
+                ),
                 busy = false,
                 error = error,
                 onDismissError = {},
@@ -269,7 +276,6 @@ class DotFastingUiTest {
                 },
                 onHighlight = {},
                 onNotifications = {},
-                onNotificationSettings = {},
                 onGlyph = {},
                 onGlyphSetup = {},
                 countDown = countDown,
