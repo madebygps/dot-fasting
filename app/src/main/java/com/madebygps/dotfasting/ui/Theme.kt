@@ -11,15 +11,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 object DotColors {
-    val Background = Color(0xFF071F1D)
-    val Surface = Color(0xFF0D2B28)
-    val Container = Color(0xFF123733)
-    val Raised = Color(0xFF17423D)
-    val Track = Color(0xFF1B4A45)
-    val Line = Color(0xFF1A3D39)
-    val Text = Color(0xFFF7FFFD)
-    val Muted = Color(0xFFA4C1BD)
-    val Dim = Color(0xFF63817D)
+    val Background = Color(0xFF101112)
+    val Surface = Color(0xFF17191B)
+    val Container = Color(0xFF202327)
+    val Raised = Color(0xFF292D31)
+    val Track = Color(0xFF33383D)
+    val Line = Color(0xFF2A2E32)
+    val Text = Color(0xFFF5F5F4)
+    val Muted = Color(0xFFB2B5B8)
+    val Dim = Color(0xFF74797E)
     val Highlights = listOf(
         "Signal red" to 0xFFE8343AL, "Amber" to 0xFFF2A33AL,
         "Acid" to 0xFFC8F03CL, "Mint" to 0xFF4BD6A0L,
