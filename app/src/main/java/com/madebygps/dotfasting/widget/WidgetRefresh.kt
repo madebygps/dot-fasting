@@ -25,21 +25,32 @@ object WidgetRefresh {
 
     suspend fun update(context: Context) {
         val widgets = AppWidgetManager.getInstance(context)
-        val ids = widgets.getAppWidgetIds(ComponentName(context, FastingWidgetReceiver::class.java))
-        if (ids.isEmpty()) {
+        val instances = WidgetVariant.entries.associateWith { variant ->
+            widgets.getAppWidgetIds(ComponentName(context, variant.provider))
+        }
+        if (instances.values.all(IntArray::isEmpty)) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+            WidgetMinuteRefresh.cancel(context)
             return
         }
         val state = try {
             readWidgetState(context)
         } catch (error: IOException) {
-            widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE)))
+            instances.forEach { (variant, ids) ->
+                widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE), variant))
+            }
+            WidgetMinuteRefresh.cancel(context)
             throw error
         } catch (error: SQLiteException) {
-            widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE)))
+            instances.forEach { (variant, ids) ->
+                widgets.updateAppWidget(ids, widgetViews(context, WidgetState(WidgetStatus.UNAVAILABLE), variant))
+            }
+            WidgetMinuteRefresh.cancel(context)
             throw error
         }
-        widgets.updateAppWidget(ids, widgetViews(context, state))
+        instances.forEach { (variant, ids) ->
+            widgets.updateAppWidget(ids, widgetViews(context, state, variant))
+        }
         val manager = WorkManager.getInstance(context)
         if (state.active) {
             manager.enqueueUniquePeriodicWork(
@@ -49,6 +60,11 @@ object WidgetRefresh {
             )
         } else {
             manager.cancelUniqueWork(WORK_NAME)
+        }
+        if (state.status == WidgetStatus.RUNNING) {
+            WidgetMinuteRefresh.schedule(context, state.elapsedMillis)
+        } else {
+            WidgetMinuteRefresh.cancel(context)
         }
     }
 }
@@ -72,7 +88,12 @@ class WidgetRefreshWorker(context: Context, parameters: WorkerParameters) : Coro
 
 class WidgetRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != RefreshCoordinator.ACTION_REFRESH && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
+        if (intent.action !in setOf(
+                RefreshCoordinator.ACTION_REFRESH,
+                WidgetMinuteRefresh.ACTION_REFRESH,
+                Intent.ACTION_MY_PACKAGE_REPLACED,
+            )
+        ) return
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {

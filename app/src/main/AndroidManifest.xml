@@ -22,15 +22,37 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".widget.FastingWidgetReceiver" android:exported="true">
+        <receiver
+            android:name=".widget.FastingWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_name_ring">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/fasting_widget" />
         </receiver>
+        <receiver
+            android:name=".widget.CompactFastingWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_name_compact">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/fasting_widget_compact" />
+        </receiver>
+        <receiver
+            android:name=".widget.WideFastingWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_name_wide">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/fasting_widget_wide" />
+        </receiver>
         <receiver android:name=".widget.WidgetRefreshReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="com.madebygps.dotfasting.REFRESH" />
+                <action android:name="com.madebygps.dotfasting.WIDGET_MINUTE_REFRESH" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>

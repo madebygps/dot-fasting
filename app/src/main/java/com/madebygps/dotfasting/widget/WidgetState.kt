@@ -14,10 +14,11 @@ internal enum class WidgetStatus { IDLE, RUNNING, REVIEW, UNAVAILABLE }
 
 internal data class WidgetState(
     val status: WidgetStatus,
-    val timerBaseMillis: Long = 0,
+    val elapsedMillis: Long = 0,
     val progress: Int = 0,
     val goalMillis: Long = 0,
     val highlight: Int = 0xFFE8343A.toInt(),
+    val startEpochMillis: Long? = null,
 ) {
     val active: Boolean get() = status == WidgetStatus.RUNNING || status == WidgetStatus.REVIEW
 }
@@ -27,11 +28,11 @@ internal fun widgetState(active: FastSession?, clock: ClockSnapshot, highlight: 
     val state = project(active, clock)
     return WidgetState(
         status = if (state.needsTimeReview) WidgetStatus.REVIEW else WidgetStatus.RUNNING,
-        // Chronometer ticks in the launcher using the same monotonic clock as the fast.
-        timerBaseMillis = clock.elapsedRealtimeMillis - state.elapsedMillis,
+        elapsedMillis = state.elapsedMillis,
         progress = (state.progress * 1000).roundToInt(),
         goalMillis = active.goalMillis,
         highlight = highlight,
+        startEpochMillis = active.startEpochMillis,
     )
 }
 
